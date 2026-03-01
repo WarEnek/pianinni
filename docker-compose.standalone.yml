@@ -1,0 +1,14 @@
+# Standalone deployment without Nginx Proxy Manager
+# Use when NPM network is not available or for local testing
+services:
+  pianini:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    container_name: pianini
+    restart: unless-stopped
+    ports:
+      - "3000:80"
