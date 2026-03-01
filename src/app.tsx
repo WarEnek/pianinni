@@ -4,6 +4,7 @@ import { LanguageScreen } from './screens/LanguageScreen';
 import { ClefSelectScreen } from './screens/ClefSelectScreen';
 import { GameScreen } from './screens/GameScreen';
 import { LessonEndScreen } from './screens/LessonEndScreen';
+import { InstallBanner } from './components/InstallBanner/InstallBanner';
 import type { ClefMode, Language } from './types';
 import { setLanguage, getLanguage } from './lib/i18n';
 import { saveLessonResult } from './lib/storage';
@@ -80,16 +81,23 @@ export function App() {
 
   const lang = getLanguage();
 
-  switch (screen) {
-    case 'splash':
-      return <SplashScreen onDone={handleSplashDone} />;
-    case 'language':
-      return <LanguageScreen onSelect={handleLanguageSelect} />;
-    case 'clef':
-      return <ClefSelectScreen lang={lang} onSelect={handleClefSelect} />;
-    case 'game':
-      return <GameScreen lang={lang} clefMode={clefMode} onFinish={handleLessonEnd} onBack={handleBackToClef} />;
-    case 'lessonEnd':
-      return <LessonEndScreen lang={lang} score={lastScore.score} total={lastScore.total} onRepeat={handleRepeat} onRest={handleRest} />;
-  }
+  return (
+    <>
+      {(() => {
+        switch (screen) {
+          case 'splash':
+            return <SplashScreen onDone={handleSplashDone} />;
+          case 'language':
+            return <LanguageScreen onSelect={handleLanguageSelect} />;
+          case 'clef':
+            return <ClefSelectScreen lang={lang} onSelect={handleClefSelect} />;
+          case 'game':
+            return <GameScreen lang={lang} clefMode={clefMode} onFinish={handleLessonEnd} onBack={handleBackToClef} />;
+          case 'lessonEnd':
+            return <LessonEndScreen lang={lang} score={lastScore.score} total={lastScore.total} onRepeat={handleRepeat} onRest={handleRest} />;
+        }
+      })()}
+      <InstallBanner />
+    </>
+  );
 }
