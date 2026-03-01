@@ -60,10 +60,23 @@ export function Piano({
       const el = scrollRef.current.querySelector(`[data-note="${scrollToNote}"]`);
       if (el) {
         const container = scrollRef.current;
-        const elLeft = (el as HTMLElement).offsetLeft;
-        const elWidth = (el as HTMLElement).offsetWidth;
-        const containerWidth = container.clientWidth;
+        const elRect = (el as HTMLElement).getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const elLeft = elRect.left - containerRect.left;
+        const elWidth = elRect.width;
+        const containerWidth = containerRect.width;
         const targetScroll = elLeft - containerWidth / 2 + elWidth / 2;
+
+        console.log('[Piano Scroll Debug]', {
+          scrollToNote,
+          elLeft,
+          elWidth,
+          containerWidth,
+          targetScroll,
+          scrollWidth: container.scrollWidth,
+          currentScroll: container.scrollLeft
+        });
+
         container.scrollTo({ left: targetScroll, behavior: 'smooth' });
       }
     }
