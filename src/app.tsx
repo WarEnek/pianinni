@@ -26,10 +26,10 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (screen === 'game') {
-      stopBgm();
-    } else {
+    if (screen === 'splash' || screen === 'language') {
       startBgm();
+    } else {
+      stopBgm();
     }
   }, [screen]);
 
