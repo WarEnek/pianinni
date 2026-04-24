@@ -44,7 +44,7 @@
 
 .keyLabel {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--color-text-muted);
   pointer-events: none;
 }

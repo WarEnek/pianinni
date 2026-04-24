@@ -1,26 +1,26 @@
 :root {
-  --color-primary: #4A3F6B;
-  --color-primary-light: #6B5F8D;
-  --color-bg: #FFFFFF;
-  --color-bg-card: #F5F3FA;
-  --color-bg-card-hover: #EBE8F3;
-  --color-text: #2D2D2D;
-  --color-text-secondary: #8E8E93;
-  --color-text-muted: #A9A4B8;
-  --color-success: #C8E6C0;
-  --color-success-note: #7BC47F;
-  --color-error: #F5C6C6;
-  --color-error-note: #E88B8B;
-  --color-white-key: #FFFFFF;
-  --color-black-key: #2D2D2D;
-  --color-staff-line: #C4C0D0;
-  --color-progress-bg: #E8E4F0;
-  --color-progress-fill: #4A3F6B;
+  --color-primary: #7d7192;
+  --color-primary-light: #6b5f8d;
+  --color-bg: #ffffff;
+  --color-bg-card: #f2eef9;
+  --color-bg-card-hover: #ebe8f3;
+  --color-text: #3d2d47;
+  --color-text-secondary: #8e8e93;
+  --color-text-muted: #9180af;
+  --color-success: #c8e6c0;
+  --color-success-note: #7bc47f;
+  --color-error: #f5c6c6;
+  --color-error-note: #e88b8b;
+  --color-white-key: #ffffff;
+  --color-black-key: #2d2d2d;
+  --color-staff-line: #c4c0d0;
+  --color-progress-bg: #e8e4f0;
+  --color-progress-fill: #4a3f6b;
 
-  --font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --radius-sm: 8px;
   --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-lg: 30px;
   --radius-full: 9999px;
 
   --shadow-card: 0 2px 8px rgba(74, 63, 107, 0.08);
@@ -34,13 +34,15 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
 }
 
 body {
   font-family: var(--font-family);
+  font-weight: 400;
   color: var(--color-text);
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
@@ -67,4 +69,9 @@ button {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+.brand {
+  height: 18px;
+  width: auto;
 }

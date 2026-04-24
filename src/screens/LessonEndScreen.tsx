@@ -1,6 +1,6 @@
-import { CatMascot } from '../components/CatMascot/CatMascot';
-import type { Language } from '../types';
-import { t } from '../lib/i18n';
+import {CatMascot} from '../components/CatMascot/CatMascot';
+import type {Language} from '../types';
+import {t} from '../lib/i18n';
 import styles from './LessonEndScreen.module.css';
 
 interface LessonEndScreenProps {
@@ -11,16 +11,22 @@ interface LessonEndScreenProps {
   onRest: () => void;
 }
 
-export function LessonEndScreen({ lang: _lang, score, total, onRepeat, onRest }: LessonEndScreenProps) {
+export function LessonEndScreen({
+  lang: _lang,
+  score,
+  total,
+  onRepeat,
+  onRest,
+}: LessonEndScreenProps) {
   return (
     <div class={styles.container}>
       <div class={styles.content}>
         <CatMascot size={140} />
         <h1 class={styles.title}>{t('lessonComplete')}</h1>
-        <p class={styles.subtitle}>
-          {t('lessonCompleteSubtitle')}
+        <p class={styles.subtitle}>{t('lessonCompleteSubtitle')}</p>
+        <p class={styles.score}>
+          {score}/{total}
         </p>
-        <p class={styles.score}>{score}/{total}</p>
       </div>
 
       <div class={styles.actions}>
@@ -30,7 +36,7 @@ export function LessonEndScreen({ lang: _lang, score, total, onRepeat, onRest }:
         <button class={styles.secondaryBtn} onClick={onRest}>
           {t('needRest')}
         </button>
-        <div class={styles.brand}>Pianinni</div>
+        <img src="/Pianinni-logo.svg" class="brand" alt="Pianinni" />
       </div>
     </div>
   );

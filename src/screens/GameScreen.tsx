@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback } from 'preact/hooks';
-import type { ClefMode, Language } from '../types';
-import { useGame } from '../hooks/useGame';
-import { Staff } from '../components/Staff/Staff';
-import { Piano } from '../components/Piano/Piano';
-import { ProgressBar } from '../components/ProgressBar/ProgressBar';
-import { MuteToggle } from '../components/MuteToggle/MuteToggle';
+import {useState, useEffect, useCallback} from 'preact/hooks';
+import type {ClefMode, Language} from '../types';
+import {useGame} from '../hooks/useGame';
+import {Staff} from '../components/Staff/Staff';
+import {Piano} from '../components/Piano/Piano';
+import {ProgressBar} from '../components/ProgressBar/ProgressBar';
+import {MuteToggle} from '../components/MuteToggle/MuteToggle';
 import successSvg from '../components/CatMascot/success.svg';
 import errorSvg from '../components/CatMascot/error.svg';
-import { allPianoKeys, getActiveRange } from '../lib/notes';
-import { playNote } from '../lib/audio';
-import { isMuted, toggleMute } from '../lib/audio';
-import { t } from '../lib/i18n';
+import {allPianoKeys, getActiveRange} from '../lib/notes';
+import {playNote, warmUpPiano} from '../lib/audio';
+import {isMuted, toggleMute} from '../lib/audio';
+import {t} from '../lib/i18n';
 import styles from './GameScreen.module.css';
 
 interface GameScreenProps {
@@ -20,11 +20,21 @@ interface GameScreenProps {
   onBack: () => void;
 }
 
-export function GameScreen({ lang, clefMode, onFinish, onBack }: GameScreenProps) {
+export function GameScreen({
+  lang,
+  clefMode,
+  onFinish,
+  onBack,
+}: GameScreenProps) {
   const game = useGame(clefMode);
   const keys = allPianoKeys;
-  const { startNoteId, endNoteId } = getActiveRange(clefMode);
+  const {startNoteId, endNoteId} = getActiveRange(clefMode);
   const [muted, setMuted] = useState(isMuted());
+
+  // Preload acoustic piano samples as soon as the game screen mounts
+  useEffect(() => {
+    warmUpPiano();
+  }, []);
 
   useEffect(() => {
     if (game.phase === 'finished') {
@@ -68,7 +78,13 @@ export function GameScreen({ lang, clefMode, onFinish, onBack }: GameScreenProps
       <div class={styles.header}>
         <button class={styles.backBtn} onClick={onBack} aria-label="Back">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="var(--color-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path
+              d="M15 18l-6-6 6-6"
+              stroke="var(--color-text)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </button>
 

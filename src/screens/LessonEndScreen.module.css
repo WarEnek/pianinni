@@ -17,7 +17,7 @@
 
 .title {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--color-text);
   text-align: center;
   margin-top: 16px;
@@ -31,7 +31,7 @@
 
 .score {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--color-primary);
   margin-top: 4px;
 }
@@ -51,10 +51,12 @@
   background: var(--color-primary);
   color: #fff;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 1px;
   border-radius: var(--radius-lg);
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
 }
 
 .primaryBtn:active {
@@ -67,17 +69,10 @@
   background: transparent;
   color: var(--color-text-secondary);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.5px;
 }
 
 .secondaryBtn:active {
   color: var(--color-text);
-}
-
-.brand {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--color-primary);
-  margin-top: 16px;
 }

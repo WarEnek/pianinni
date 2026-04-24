@@ -1,13 +1,13 @@
-import { CatMascot } from '../components/CatMascot/CatMascot';
-import { startBgm } from '../lib/audio';
-import type { Language } from '../types';
+import {CatMascot} from '../components/CatMascot/CatMascot';
+import {startBgm} from '../lib/audio';
+import type {Language} from '../types';
 import styles from './LanguageScreen.module.css';
 
 interface LanguageScreenProps {
   onSelect: (lang: Language) => void;
 }
 
-export function LanguageScreen({ onSelect }: LanguageScreenProps) {
+export function LanguageScreen({onSelect}: LanguageScreenProps) {
   function handleSelect(lang: Language) {
     startBgm();
     onSelect(lang);
@@ -31,7 +31,7 @@ export function LanguageScreen({ onSelect }: LanguageScreenProps) {
         </button>
       </div>
 
-      <div class={styles.brand}>Pianinni</div>
+      <img src="/Pianinni-logo.svg" class="brand" alt="Pianinni" />
     </div>
   );
 }

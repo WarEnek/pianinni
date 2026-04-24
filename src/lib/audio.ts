@@ -1,8 +1,14 @@
+import {SplendidGrandPiano} from 'smplr';
+
 let audioCtx: AudioContext | null = null;
 let muted = localStorage.getItem('pianinni_muted') === 'true';
 
 let bgm: HTMLAudioElement | null = null;
 let bgmFadeTimer: ReturnType<typeof setInterval> | null = null;
+
+// SplendidGrandPiano instance — loaded once, reused for all notes
+let piano: SplendidGrandPiano | null = null;
+let pianoLoading = false;
 
 export function startBgm(): void {
   if (muted) return;
@@ -13,7 +19,10 @@ export function startBgm(): void {
   bgm = new Audio('/audio/bgm.mp3');
   bgm.loop = true;
   bgm.volume = 0;
-  bgm.play().then(() => fadeBgmIn()).catch(() => {});
+  bgm
+    .play()
+    .then(() => fadeBgmIn())
+    .catch(() => {});
 }
 
 export function stopBgm(): void {
@@ -73,9 +82,14 @@ export function setMuted(val: boolean): void {
   localStorage.setItem('pianinni_muted', String(val));
   if (bgm) {
     if (muted) {
-      fadeBgmOut(() => { bgm?.pause(); });
+      fadeBgmOut(() => {
+        bgm?.pause();
+      });
     } else if (bgm.paused) {
-      bgm.play().then(() => fadeBgmIn()).catch(() => {});
+      bgm
+        .play()
+        .then(() => fadeBgmIn())
+        .catch(() => {});
     }
   }
 }
@@ -85,52 +99,107 @@ export function toggleMute(): boolean {
   return muted;
 }
 
+/**
+ * Eagerly load the Splendid Grand Piano samples (Steinway, 4 velocity layers).
+ * Call this as soon as the user enters the game screen — samples load in the
+ * background while they read the UI.
+ */
+export function warmUpPiano(): void {
+  if (piano || pianoLoading) return;
+  pianoLoading = true;
+
+  const ctx = getContext();
+  piano = new SplendidGrandPiano(ctx, {
+    // Steinway samples from SplendidGrandPiano project (hosted on CDN)
+    detune: 0,
+    volume: 90,
+    decayTime: 2.0,
+  });
+
+  piano.load.catch(() => {
+    // If CDN fails, clear so synthesis fallback is used
+    piano = null;
+    pianoLoading = false;
+  });
+}
+
+// ---- Synthesis fallback (plays while soundfont is still loading) ----
+
 function midiToFrequency(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-export function playNote(midi: number): void {
-  if (muted) return;
+const PIANO_PARTIALS: [number, number, number][] = [
+  [1, 0.7, 2.0],
+  [2, 0.18, 1.4],
+  [3, 0.09, 0.9],
+  [4, 0.04, 0.6],
+];
 
+function playNoteSynthesis(midi: number): void {
   const ctx = getContext();
   const freq = midiToFrequency(midi);
   const now = ctx.currentTime;
 
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0.4, now);
+  masterGain.connect(ctx.destination);
 
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(freq, now);
+  // Hammer click
+  const noiseBuffer = ctx.createBuffer(
+    1,
+    Math.floor(ctx.sampleRate * 0.04),
+    ctx.sampleRate,
+  );
+  const noiseData = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < noiseData.length; i++) {
+    noiseData[i] = Math.random() * 2 - 1;
+  }
+  const noiseSource = ctx.createBufferSource();
+  noiseSource.buffer = noiseBuffer;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(freq * 6, now);
+  noiseFilter.Q.setValueAtTime(0.8, now);
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.12, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+  noiseSource.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(masterGain);
+  noiseSource.start(now);
+  noiseSource.stop(now + 0.05);
 
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(freq * 4, now);
-  filter.Q.setValueAtTime(1, now);
+  for (const [mult, relGain, decayTime] of PIANO_PARTIALS) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    const inharmonicFreq =
+      mult === 1 ? freq : freq * mult * (1 + 0.0003 * mult * mult);
+    osc.frequency.setValueAtTime(inharmonicFreq, now);
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0, now);
+    oscGain.gain.linearRampToValueAtTime(relGain, now + 0.005);
+    oscGain.gain.exponentialRampToValueAtTime(relGain * 0.55, now + 0.08);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + decayTime);
+    osc.connect(oscGain);
+    oscGain.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + decayTime + 0.05);
+  }
+}
 
-  const volume = 0.3;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(volume, now + 0.01);
-  gain.gain.exponentialRampToValueAtTime(volume * 0.6, now + 0.1);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+// ---- Public note player ----
 
-  const osc2 = ctx.createOscillator();
-  osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(freq, now);
+export function playNote(midi: number): void {
+  if (muted) return;
 
-  const gain2 = ctx.createGain();
-  gain2.gain.setValueAtTime(0, now);
-  gain2.gain.linearRampToValueAtTime(volume * 0.5, now + 0.01);
-  gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+  // Kick off sample loading on first call if not started yet
+  if (!piano && !pianoLoading) warmUpPiano();
 
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc2.connect(gain2);
-  gain2.connect(ctx.destination);
-
-  osc.start(now);
-  osc2.start(now);
-  osc.stop(now + 1.5);
-  osc2.stop(now + 1.2);
+  if (piano) {
+    // Real Steinway sample — velocity 80 gives a natural, mid-weight touch
+    piano.start({note: midi, velocity: 80});
+  } else {
+    playNoteSynthesis(midi);
+  }
 }
