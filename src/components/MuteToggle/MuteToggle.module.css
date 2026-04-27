@@ -1,4 +1,5 @@
 .btn {
+  position: relative;
   width: 44px;
   height: 44px;
   display: flex;
@@ -11,4 +12,20 @@
 
 .btn:active {
   background: var(--color-bg-card-hover);
+}
+
+.soundBlocked {
+  box-shadow: 0 0 0 2px rgba(255, 173, 51, 0.35);
+}
+
+.warningDot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--color-bg-card);
+  border-radius: var(--radius-full);
+  background: #FFAD33;
+  pointer-events: none;
 }

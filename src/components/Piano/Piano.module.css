@@ -34,6 +34,7 @@
   justify-content: flex-end;
   padding-bottom: 10px;
   cursor: pointer;
+  touch-action: pan-x;
   z-index: 1;
   transition: background 0.15s ease;
 }
@@ -43,10 +44,14 @@
 }
 
 .keyLabel {
-  font-size: 10px;
-  font-weight: 400;
+  font-size: 9px;
+  font-weight: 500;
   color: var(--color-text-muted);
   pointer-events: none;
+  line-height: 1.1;
+  max-width: 100%;
+  text-align: center;
+  word-break: break-all;
 }
 
 .middleC {
@@ -71,8 +76,25 @@
   background: var(--color-black-key);
   border-radius: 0 0 6px 6px;
   cursor: pointer;
+  touch-action: pan-x;
   z-index: 2;
   transition: background 0.15s ease;
+}
+
+.blackKeyDebugLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  font-size: 6px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 1px;
 }
 
 .blackKey:active {
@@ -97,11 +119,3 @@
   background: var(--color-error-note) !important;
 }
 
-.dimKey {
-  background: #F0EEF3;
-  border-color: #E2DFE8;
-}
-
-.dimBlackKey {
-  background: #8A8694;
-}

@@ -1,14 +1,27 @@
 import {SplendidGrandPiano} from 'smplr';
 
+export type AudioAvailability = 'available' | 'blocked' | 'unavailable';
+
+interface WindowWithWebkitAudioContext extends Window {
+  AudioContext?: typeof AudioContext;
+  webkitAudioContext?: typeof AudioContext;
+}
+
 let audioCtx: AudioContext | null = null;
 let muted = localStorage.getItem('pianinni_muted') === 'true';
 
 let bgm: HTMLAudioElement | null = null;
 let bgmFadeTimer: ReturnType<typeof setInterval> | null = null;
+const NOTE_SUSTAIN_SECONDS = 2;
 
 // SplendidGrandPiano instance — loaded once, reused for all notes
 let piano: SplendidGrandPiano | null = null;
 let pianoLoading = false;
+
+function getAudioContextConstructor(): typeof AudioContext | null {
+  const audioWindow = window as WindowWithWebkitAudioContext;
+  return audioWindow.AudioContext ?? audioWindow.webkitAudioContext ?? null;
+}
 
 export function startBgm(): void {
   if (muted) return;
@@ -63,14 +76,53 @@ function clearBgmFade(): void {
   }
 }
 
-function getContext(): AudioContext {
+function getContext(): AudioContext | null {
+  const AudioContextConstructor = getAudioContextConstructor();
+  if (!AudioContextConstructor) return null;
+
   if (!audioCtx) {
-    audioCtx = new AudioContext();
+    audioCtx = new AudioContextConstructor();
   }
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    audioCtx.resume().catch(() => {});
   }
   return audioCtx;
+}
+
+export function getAudioAvailability(): AudioAvailability {
+  if (!getAudioContextConstructor()) return 'unavailable';
+  if (!audioCtx) return 'blocked';
+  if (audioCtx.state === 'running') return 'available';
+  return 'blocked';
+}
+
+export async function ensureAudioAvailable(): Promise<AudioAvailability> {
+  const ctx = getContext();
+  if (!ctx) {
+    if (import.meta.env.DEV) {
+      console.debug('[Audio] availability check failed', {status: 'unavailable'});
+    }
+    return 'unavailable';
+  }
+
+  if (ctx.state === 'suspended') {
+    try {
+      await ctx.resume();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.debug('[Audio] resume failed', {error});
+      }
+    }
+  }
+
+  const status = getAudioAvailability();
+  if (import.meta.env.DEV) {
+    console.debug('[Audio] availability checked', {
+      status,
+      contextState: ctx.state,
+    });
+  }
+  return status;
 }
 
 export function isMuted(): boolean {
@@ -106,14 +158,15 @@ export function toggleMute(): boolean {
  */
 export function warmUpPiano(): void {
   if (piano || pianoLoading) return;
-  pianoLoading = true;
 
   const ctx = getContext();
+  if (!ctx) return;
+  pianoLoading = true;
   piano = new SplendidGrandPiano(ctx, {
     // Steinway samples from SplendidGrandPiano project (hosted on CDN)
     detune: 0,
     volume: 90,
-    decayTime: 2.0,
+    decayTime: NOTE_SUSTAIN_SECONDS,
   });
 
   piano.load.catch(() => {
@@ -129,15 +182,16 @@ function midiToFrequency(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-const PIANO_PARTIALS: [number, number, number][] = [
-  [1, 0.7, 2.0],
-  [2, 0.18, 1.4],
-  [3, 0.09, 0.9],
-  [4, 0.04, 0.6],
+const PIANO_PARTIALS: [number, number][] = [
+  [1, 0.7],
+  [2, 0.18],
+  [3, 0.09],
+  [4, 0.04],
 ];
 
 function playNoteSynthesis(midi: number): void {
   const ctx = getContext();
+  if (!ctx) return;
   const freq = midiToFrequency(midi);
   const now = ctx.currentTime;
 
@@ -170,7 +224,7 @@ function playNoteSynthesis(midi: number): void {
   noiseSource.start(now);
   noiseSource.stop(now + 0.05);
 
-  for (const [mult, relGain, decayTime] of PIANO_PARTIALS) {
+  for (const [mult, relGain] of PIANO_PARTIALS) {
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     const inharmonicFreq =
@@ -180,11 +234,14 @@ function playNoteSynthesis(midi: number): void {
     oscGain.gain.setValueAtTime(0, now);
     oscGain.gain.linearRampToValueAtTime(relGain, now + 0.005);
     oscGain.gain.exponentialRampToValueAtTime(relGain * 0.55, now + 0.08);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, now + decayTime);
+    oscGain.gain.exponentialRampToValueAtTime(
+      0.001,
+      now + NOTE_SUSTAIN_SECONDS,
+    );
     osc.connect(oscGain);
     oscGain.connect(masterGain);
     osc.start(now);
-    osc.stop(now + decayTime + 0.05);
+    osc.stop(now + NOTE_SUSTAIN_SECONDS + 0.05);
   }
 }
 
@@ -192,14 +249,30 @@ function playNoteSynthesis(midi: number): void {
 
 export function playNote(midi: number): void {
   if (muted) return;
+  if (getAudioAvailability() === 'unavailable') return;
+  const notePlaybackStartedAt = performance.now();
 
   // Kick off sample loading on first call if not started yet
   if (!piano && !pianoLoading) warmUpPiano();
 
+  const source = piano ? 'sample' : 'synthesis';
   if (piano) {
     // Real Steinway sample — velocity 80 gives a natural, mid-weight touch
-    piano.start({note: midi, velocity: 80});
+    piano.start({
+      note: midi,
+      velocity: 80,
+      duration: NOTE_SUSTAIN_SECONDS,
+    });
   } else {
     playNoteSynthesis(midi);
+  }
+
+  if (import.meta.env.DEV) {
+    console.debug('[Audio] playNote dispatched', {
+      midi,
+      source,
+      contextState: audioCtx?.state ?? 'uninitialized',
+      dispatchCostMs: Math.round((performance.now() - notePlaybackStartedAt) * 100) / 100,
+    });
   }
 }

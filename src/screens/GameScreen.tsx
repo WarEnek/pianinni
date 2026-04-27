@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'preact/hooks';
+import {useState, useEffect, useCallback, useRef} from 'preact/hooks';
 import type {ClefMode, Language} from '../types';
 import {useGame} from '../hooks/useGame';
 import {Staff} from '../components/Staff/Staff';
@@ -9,7 +9,14 @@ import successSvg from '../components/CatMascot/success.svg';
 import errorSvg from '../components/CatMascot/error.svg';
 import {allPianoKeys, getActiveRange} from '../lib/notes';
 import {playNote, warmUpPiano} from '../lib/audio';
-import {isMuted, toggleMute} from '../lib/audio';
+import {
+  ensureAudioAvailable,
+  getAudioAvailability,
+  isMuted,
+  setMuted as setMutedPreference,
+  toggleMute,
+} from '../lib/audio';
+import type {AudioAvailability} from '../lib/audio';
 import {t} from '../lib/i18n';
 import styles from './GameScreen.module.css';
 
@@ -26,15 +33,35 @@ export function GameScreen({
   onFinish,
   onBack,
 }: GameScreenProps) {
+  const ANSWER_FEEDBACK_DELAY_MS = 30;
   const game = useGame(clefMode);
   const keys = allPianoKeys;
   const {startNoteId, endNoteId} = getActiveRange(clefMode);
-  const [muted, setMuted] = useState(isMuted());
+  const [muted, setMutedState] = useState(isMuted());
+  const [audioAvailability, setAudioAvailability] = useState<AudioAvailability>(
+    getAudioAvailability(),
+  );
+  const pendingAnswerRef = useRef(false);
 
   // Preload acoustic piano samples as soon as the game screen mounts
   useEffect(() => {
     warmUpPiano();
+    setAudioAvailability(getAudioAvailability());
   }, []);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const firstKey = keys[0]?.noteId ?? null;
+    const lastKey = keys[keys.length - 1]?.noteId ?? null;
+    console.debug('[Piano] visible keyboard range', {
+      firstKey,
+      lastKey,
+      totalKeys: keys.length,
+      startNoteId,
+      endNoteId,
+      clefMode,
+    });
+  }, [keys, startNoteId, endNoteId, clefMode]);
 
   useEffect(() => {
     if (game.phase === 'finished') {
@@ -44,19 +71,44 @@ export function GameScreen({
 
   const handleKeyPress = useCallback(
     (noteId: string) => {
-      if (game.phase !== 'playing') return;
+      if (game.phase !== 'playing' || pendingAnswerRef.current) return;
       const key = keys.find((k) => k.noteId === noteId);
+      const pressedAtMs = performance.now();
       if (key) {
         playNote(key.midi);
+        setAudioAvailability(getAudioAvailability());
       }
-      game.checkAnswer(noteId);
+      if (import.meta.env.DEV) {
+        console.debug('[Game] piano key press', {
+          pressedNoteId: noteId,
+          pressedMidi: key?.midi,
+          expectedNoteId: game.currentNote.id,
+          expectedMidi: game.currentNote.midi,
+          feedbackDelayMs: ANSWER_FEEDBACK_DELAY_MS,
+        });
+      }
+      pendingAnswerRef.current = true;
+      window.setTimeout(() => {
+        game.checkAnswer(noteId, pressedAtMs);
+        pendingAnswerRef.current = false;
+      }, ANSWER_FEEDBACK_DELAY_MS);
     },
-    [game, keys],
+    [game, keys, ANSWER_FEEDBACK_DELAY_MS],
   );
 
-  const handleMuteToggle = useCallback(() => {
+  const handleMuteToggle = useCallback(async () => {
+    const availability = await ensureAudioAvailable();
+    setAudioAvailability(availability);
+    if (availability === 'unavailable') return;
+
+    if (availability === 'blocked') {
+      setMutedPreference(true);
+      setMutedState(true);
+      return;
+    }
+
     toggleMute();
-    setMuted(isMuted());
+    setMutedState(isMuted());
   }, []);
 
   let feedbackState: 'none' | 'correct' | 'wrong' = 'none';
@@ -64,6 +116,7 @@ export function GameScreen({
   if (game.phase === 'wrong') feedbackState = 'wrong';
 
   const noteName = game.currentNote.name[lang];
+  const octaveName = game.currentNote.octave[lang];
 
   let feedbackText = `${t('playNote')} `;
   if (game.phase === 'correct') {
@@ -92,7 +145,13 @@ export function GameScreen({
           <span class={styles.feedbackText}>
             {game.phase === 'playing' ? (
               <>
-                {t('playNote')} <strong>{noteName}</strong>
+                {t('playNote')}{' '}
+                <strong>
+                  {noteName}, {octaveName}
+                </strong>
+                {import.meta.env.DEV && (
+                  <span class={styles.debugNoteId}> ({game.currentNote.id})</span>
+                )}
               </>
             ) : (
               feedbackText
@@ -100,7 +159,11 @@ export function GameScreen({
           </span>
         </div>
 
-        <MuteToggle muted={muted} onToggle={handleMuteToggle} />
+        <MuteToggle
+          muted={muted}
+          audioAvailability={audioAvailability}
+          onToggle={handleMuteToggle}
+        />
       </div>
 
       {/* Progress bar */}
@@ -129,12 +192,13 @@ export function GameScreen({
         <Piano
           keys={keys}
           activeStartId={startNoteId}
-          activeEndId={endNoteId}
           highlightKey={game.highlightKey}
           highlightType={game.highlightType}
           onKeyPress={handleKeyPress}
           scrollToNote={game.currentNote.id}
+          scrollBiasSeed={game.attempt}
           disabled={game.phase !== 'playing'}
+          showKeyDebugIds={import.meta.env.DEV}
         />
       </div>
     </div>

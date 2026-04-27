@@ -43,10 +43,21 @@ export function useGame(clefMode: ClefMode) {
   });
 
   const checkAnswer = useCallback(
-    (noteId: string) => {
+    (noteId: string, pressedAtMs?: number) => {
       if (state.phase !== 'playing') return;
 
       const isCorrect = noteId === state.currentNote.id;
+      if (import.meta.env.DEV) {
+        console.debug('[Game] feedback state commit', {
+          noteId,
+          expectedNoteId: state.currentNote.id,
+          isCorrect,
+          inputToFeedbackMs:
+            typeof pressedAtMs === 'number'
+              ? Math.round((performance.now() - pressedAtMs) * 100) / 100
+              : null,
+        });
+      }
 
       if (isCorrect) {
         vibrateCorrect();

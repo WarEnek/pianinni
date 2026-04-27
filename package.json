@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node ./scripts/print-dev-network-url.mjs",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"

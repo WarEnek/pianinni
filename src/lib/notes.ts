@@ -20,6 +20,8 @@ const octaveNames: Record<number, { ru: string; en: string }> = {
 
 type NoteLetter = keyof typeof noteNames;
 const whiteNoteOrder: NoteLetter[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const PIANO_START_NOTE_ID = 'B1';
+const PIANO_END_NOTE_ID = 'E6';
 
 function midiNumber(note: NoteLetter, octave: number): number {
   const semitones: Record<NoteLetter, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -60,8 +62,7 @@ export const trebleNotes: NoteDefinition[] = (() => {
   const notes: NoteDefinition[] = [];
   for (const n of whiteNoteOrder) notes.push(createNote(n, 4, 'treble')); // 1st octave
   for (const n of whiteNoteOrder) notes.push(createNote(n, 5, 'treble')); // 2nd octave
-  notes.push(createNote('C', 6, 'treble')); // 3rd octave C only
-  return notes;
+  return notes.filter((note) => note.midi <= midiNumber('F', 5));
 })();
 
 export const bassNotes: NoteDefinition[] = (() => {
@@ -91,10 +92,7 @@ const sharpNames: Record<string, { ru: string; en: string }> = {
 
 const blackAfterNotes: NoteLetter[] = ['C', 'D', 'F', 'G', 'A'];
 
-/**
- * Full 88-key piano: A0 to C8 (52 white + 36 black).
- * Generated once and reused.
- */
+/** Visible keyboard range for game screen: E1 to F5 (inclusive). */
 export const allPianoKeys: KeyDefinition[] = (() => {
   const keys: KeyDefinition[] = [];
 
@@ -119,13 +117,15 @@ export const allPianoKeys: KeyDefinition[] = (() => {
   keys.push({ noteId: 'C8', midi: midiNumber('C', 8), isBlack: false, label: noteNames['C'] });
 
   keys.sort((a, b) => a.midi - b.midi);
-  return keys;
+  const startMidi = keys.find((key) => key.noteId === PIANO_START_NOTE_ID)?.midi ?? 0;
+  const endMidi = keys.find((key) => key.noteId === PIANO_END_NOTE_ID)?.midi ?? 127;
+  return keys.filter((key) => key.midi >= startMidi && key.midi <= endMidi);
 })();
 
 export function getActiveRange(mode: ClefMode): { startNoteId: string; endNoteId: string } {
-  if (mode === 'treble') return { startNoteId: 'C4', endNoteId: 'C6' };
+  if (mode === 'treble') return { startNoteId: 'C4', endNoteId: 'F5' };
   if (mode === 'bass') return { startNoteId: 'E2', endNoteId: 'E4' };
-  return { startNoteId: 'E2', endNoteId: 'C6' };
+  return { startNoteId: 'E2', endNoteId: 'F5' };
 }
 
 export function getRandomNote(notes: NoteDefinition[]): NoteDefinition {

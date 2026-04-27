@@ -1,7 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { CatMascot } from '../components/CatMascot/CatMascot';
 import logoSvg from './Pianinni.svg';
-import { startBgm } from '../lib/audio';
 import styles from './SplashScreen.module.css';
 
 interface SplashScreenProps {
@@ -15,7 +14,9 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
   }, [onDone]);
 
   function handleClick() {
-    startBgm();
+    if (import.meta.env.DEV) {
+      console.debug('[Audio] menu bgm suppressed on splash click');
+    }
     onDone();
   }
 

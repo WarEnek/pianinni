@@ -3,6 +3,12 @@ import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  server: {
+    // WSL2 / Cursor Simple Browser: bind 0.0.0.0 so Windows can reach the dev server
+    host: true,
+    port: 5173,
+    allowedHosts: true,
+  },
   plugins: [
     preact(),
     VitePWA({

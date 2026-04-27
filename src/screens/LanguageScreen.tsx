@@ -1,5 +1,4 @@
 import {CatMascot} from '../components/CatMascot/CatMascot';
-import {startBgm} from '../lib/audio';
 import type {Language} from '../types';
 import styles from './LanguageScreen.module.css';
 
@@ -9,7 +8,9 @@ interface LanguageScreenProps {
 
 export function LanguageScreen({onSelect}: LanguageScreenProps) {
   function handleSelect(lang: Language) {
-    startBgm();
+    if (import.meta.env.DEV) {
+      console.debug('[Audio] menu bgm suppressed on language select', {lang});
+    }
     onSelect(lang);
   }
 
