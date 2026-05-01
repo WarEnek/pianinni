@@ -1,4 +1,5 @@
 import type {NoteDefinition} from '../../types';
+import {useCompactLandscape} from '../../lib/breakpoints';
 import styles from './Staff.module.css';
 
 interface StaffProps {
@@ -6,11 +7,15 @@ interface StaffProps {
   feedback: 'none' | 'correct' | 'wrong';
 }
 
-const STAFF_WIDTH = 360;
 const STAFF_HEIGHT = 160;
+/** Base logical width before +20% bump (historical 360 / landscape 400). */
+const STAFF_WIDTH_BASE_PORTRAIT = 360;
+const STAFF_WIDTH_BASE_LANDSCAPE = 400;
+/** +20% vs previous staff widths. */
+const STAFF_WIDTH_DEFAULT = Math.round(STAFF_WIDTH_BASE_PORTRAIT * 1.2);
+const STAFF_WIDTH_LANDSCAPE = Math.round(STAFF_WIDTH_BASE_LANDSCAPE * 1.2);
 const LINE_SPACING = 14;
 const TOP_MARGIN = 40;
-const NOTE_X = STAFF_WIDTH / 2 + 20;
 
 // Note ellipse dimensions
 const NOTE_RX = 9;
@@ -128,6 +133,10 @@ function WholeNote({cx, cy, color, animated}: WholeNoteProps) {
 }
 
 export function Staff({note, feedback}: StaffProps) {
+  const compactLandscape = useCompactLandscape();
+  const staffWidth = compactLandscape ? STAFF_WIDTH_LANDSCAPE : STAFF_WIDTH_DEFAULT;
+  const noteX = staffWidth / 2 + 20;
+
   const ny = noteY(note.staffPosition);
 
   let noteColor = '#5B4B65';
@@ -137,7 +146,7 @@ export function Staff({note, feedback}: StaffProps) {
   return (
     <div class={styles.staffContainer}>
       <svg
-        viewBox={`0 0 ${STAFF_WIDTH} ${STAFF_HEIGHT}`}
+        viewBox={`0 0 ${staffWidth} ${STAFF_HEIGHT}`}
         class={styles.staffSvg}
         xmlns="http://www.w3.org/2000/svg">
         {/* Staff lines */}
@@ -146,7 +155,7 @@ export function Staff({note, feedback}: StaffProps) {
             key={i}
             x1="20"
             y1={staffLineY(i)}
-            x2={STAFF_WIDTH - 20}
+            x2={staffWidth - 20}
             y2={staffLineY(i)}
             stroke="var(--color-staff-line)"
             stroke-width="1.5"
@@ -157,11 +166,11 @@ export function Staff({note, feedback}: StaffProps) {
         {note.clef === 'treble' ? <TrebleClef /> : <BassClef />}
 
         {/* Ledger lines for notes outside the staff */}
-        <LedgerLines staffPosition={note.staffPosition} x={NOTE_X} />
+        <LedgerLines staffPosition={note.staffPosition} x={noteX} />
 
         {/* Whole note drawn as an SVG ellipse for pixel-perfect placement */}
         <WholeNote
-          cx={NOTE_X}
+          cx={noteX}
           cy={ny}
           color={noteColor}
           animated={feedback !== 'none'}

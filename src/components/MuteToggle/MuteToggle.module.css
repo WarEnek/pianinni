@@ -29,3 +29,19 @@
   background: #FFAD33;
   pointer-events: none;
 }
+
+/* Match GameScreen back button size; compact header in narrow landscape */
+@media (orientation: landscape) and (max-height: 560px) {
+  .btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .warningDot {
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+    border-width: 1px;
+  }
+}

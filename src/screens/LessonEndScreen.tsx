@@ -21,7 +21,9 @@ export function LessonEndScreen({
   return (
     <div class={styles.container}>
       <div class={styles.content}>
-        <CatMascot size={140} />
+        <div class={styles.mascot}>
+          <CatMascot size={140} />
+        </div>
         <h1 class={styles.title}>{t('lessonComplete')}</h1>
         <p class={styles.subtitle}>{t('lessonCompleteSubtitle')}</p>
         <p class={styles.score}>

@@ -19,12 +19,14 @@
   position: relative;
   height: 200px;
   flex-shrink: 0;
+  --octave-strip-height: 34px;
+  --octave-strip-overlap: 7px;
 }
 
 .whiteKey {
   position: absolute;
   top: 0;
-  height: 100%;
+  height: calc(100% - var(--octave-strip-height));
   background: var(--color-white-key);
   border: 1.5px solid #D5D1DE;
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
@@ -37,6 +39,41 @@
   touch-action: pan-x;
   z-index: 1;
   transition: background 0.15s ease;
+}
+
+.octaveStripLayer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--octave-strip-height) + var(--octave-strip-overlap));
+  z-index: 0;
+  pointer-events: none;
+}
+
+.octaveStrip {
+  position: absolute;
+  bottom: 0;
+  height: calc(var(--octave-strip-height) + var(--octave-strip-overlap));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.octaveStripLabel {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  text-align: center;
+  white-space: nowrap;
+  padding: 0 6px;
+  transform: translateY(calc(var(--octave-strip-overlap) / 2));
 }
 
 .whiteKey:active {
@@ -58,21 +95,44 @@
   border-color: #C4BFD6;
 }
 
-.middleCDot {
+.middleCLapka {
   position: absolute;
-  bottom: 32px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  opacity: 0.25;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   pointer-events: none;
+  user-select: none;
+  color: #c8c6d3;
+}
+
+.middleCLapkaSvg {
+  width: 24px;
+  height: auto;
+  display: block;
+}
+
+.middleCLapkaToneCorrect {
+  color: #85bd8f;
+}
+
+.middleCLapkaToneWrong {
+  color: #ddb0b5;
+}
+
+@supports (color: color-mix(in srgb, red 50%, blue 50%)) {
+  .middleCLapkaToneCorrect {
+    color: color-mix(in srgb, var(--color-success-note) 58%, #c8c6d3);
+  }
+
+  .middleCLapkaToneWrong {
+    color: color-mix(in srgb, var(--color-error-note) 58%, #c8c6d3);
+  }
 }
 
 .blackKey {
   position: absolute;
   top: 0;
-  height: 125px;
+  height: 108px;
   background: var(--color-black-key);
   border-radius: 0 0 6px 6px;
   cursor: pointer;
@@ -117,5 +177,35 @@
 
 .blackKeyWrong {
   background: var(--color-error-note) !important;
+}
+
+/* Landscape: compact keys; octave labels block −35% vs previous landscape */
+@media (orientation: landscape) and (max-height: 560px) {
+  .pianoKeys {
+    height: 35vh;
+    min-height: 99px;
+    max-height: 159px;
+    --octave-strip-overlap: 5px;
+  }
+
+  .octaveStripLabel {
+    font-size: 6px;
+    padding: 0 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .blackKey {
+    height: 14vh;
+    min-height: 35px;
+    max-height: 49px;
+  }
+
+  .whiteKey {
+    padding-bottom: 5px;
+  }
+
+  .middleCLapkaSvg {
+    width: 20px;
+  }
 }
 

@@ -17,7 +17,7 @@
   --color-progress-bg: #e8e4f0;
   --color-progress-fill: #4a3f6b;
 
-  --font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: 'Noto Sans JP', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 30px;
@@ -38,10 +38,10 @@ html,
 body {
   height: 100%;
   overflow: hidden;
+  font-family: var(--font-family);
 }
 
 body {
-  font-family: var(--font-family);
   font-weight: 400;
   color: var(--color-text);
   background: var(--color-bg);
@@ -58,12 +58,18 @@ body {
   flex-direction: column;
 }
 
-button {
+button,
+input,
+textarea,
+select {
   font-family: inherit;
   border: none;
-  cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
 }
 
 a {

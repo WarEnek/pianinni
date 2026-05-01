@@ -62,23 +62,103 @@
   justify-content: center;
   position: relative;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
+}
+
+/* Stage width matches staff only; mascot is position:absolute and does not shift the staff */
+.staffStage {
+  position: relative;
+  width: min(600px, calc(100vw - 32px));
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 max(10px, env(safe-area-inset-left, 0px)) 0 max(10px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
 }
 
 .catPeek {
   position: absolute;
-  right: 30px;
-  top: 50%;
-  transform: translateY(-60%);
-  animation: peekIn 0.3s ease;
+  z-index: 2;
+  /* Vertical center of five staff lines in Staff SVG viewBox (y≈40–96 of 160 → 42.5%) */
+  top: 42.5%;
+  left: 100%;
+  /* Stronger overlap onto staff lines (~42% of stage width vs previous 25%) */
+  margin-left: -42%;
+  pointer-events: none;
+  /* Match first keyframe on paint frame 0 — avoids first answer flashing without slide */
+  opacity: 0;
+  transform: translateY(-50%) translateX(28px);
+  animation: catPeekSlideIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes peekIn {
-  from { transform: translateY(-40%) translateX(40px); opacity: 0; }
-  to { transform: translateY(-60%) translateX(0); opacity: 1; }
+.catPeekImg {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(127px, 32vw);
+  max-height: min(105px, 28vh);
+}
+
+@keyframes catPeekSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+@keyframes catPeekSlideInLandscape {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(clamp(24px, 12vw, 56px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 .pianoArea {
   flex-shrink: 0;
   border-top: 1px solid var(--color-progress-bg);
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .staffStage {
+    width: min(680px, calc(100vw - 16px));
+  }
+
+  .catPeek {
+    transform: translateY(-50%) translateX(clamp(24px, 12vw, 56px));
+    animation: catPeekSlideInLandscape 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .catPeekImg {
+    max-width: min(118px, 24vw);
+    max-height: min(108px, 32vh);
+  }
+
+  .header {
+    padding: 4px 12px 2px;
+  }
+
+  .backBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .feedbackText {
+    font-size: 14px;
+  }
+
+  .progressWrap {
+    padding: 2px 12px 0;
+  }
+
+  .staffArea {
+    justify-content: flex-start;
+  }
 }

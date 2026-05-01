@@ -1,27 +1,31 @@
-import type { NoteDefinition, KeyDefinition, ClefMode } from '../types';
+import type { NoteDefinition, KeyDefinition, ClefMode, Language } from '../types';
 
 const noteNames = {
-  C: { ru: 'До', en: 'C' },
-  D: { ru: 'Ре', en: 'D' },
-  E: { ru: 'Ми', en: 'E' },
-  F: { ru: 'Фа', en: 'F' },
-  G: { ru: 'Соль', en: 'G' },
-  A: { ru: 'Ля', en: 'A' },
-  B: { ru: 'Си', en: 'B' },
+  C: { ru: 'До', en: 'C', ja: 'ド' },
+  D: { ru: 'Ре', en: 'D', ja: 'レ' },
+  E: { ru: 'Ми', en: 'E', ja: 'ミ' },
+  F: { ru: 'Фа', en: 'F', ja: 'ファ' },
+  G: { ru: 'Соль', en: 'G', ja: 'ソ' },
+  A: { ru: 'Ля', en: 'A', ja: 'ラ' },
+  B: { ru: 'Си', en: 'B', ja: 'シ' },
 };
 
-const octaveNames: Record<number, { ru: string; en: string }> = {
-  2: { ru: 'большая октава', en: 'great octave' },
-  3: { ru: 'малая октава', en: 'small octave' },
-  4: { ru: 'первая октава', en: '1st octave' },
-  5: { ru: 'вторая октава', en: '2nd octave' },
-  6: { ru: 'третья октава', en: '3rd octave' },
+const octaveNames: Record<number, Record<Language, string>> = {
+  0: { ru: 'субоктава', en: 'sub-octave', ja: 'サブオクターブ' },
+  1: { ru: 'контроктава', en: 'contra octave', ja: 'コントラオクターブ' },
+  2: { ru: 'большая октава', en: 'great octave', ja: '大オクターブ' },
+  3: { ru: 'малая октава', en: 'small octave', ja: '小オクターブ' },
+  4: { ru: 'первая октава', en: '1st octave', ja: '第1オクターブ' },
+  5: { ru: 'вторая октава', en: '2nd octave', ja: '第2オクターブ' },
+  6: { ru: 'третья октава', en: '3rd octave', ja: '第3オクターブ' },
+  7: { ru: 'четвертая октава', en: '4th octave', ja: '第4オクターブ' },
+  8: { ru: 'пятая', en: '5th', ja: '第5' },
 };
 
 type NoteLetter = keyof typeof noteNames;
 const whiteNoteOrder: NoteLetter[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-const PIANO_START_NOTE_ID = 'B1';
-const PIANO_END_NOTE_ID = 'E6';
+const PIANO_START_NOTE_ID = 'A0';
+const PIANO_END_NOTE_ID = 'C8';
 
 function midiNumber(note: NoteLetter, octave: number): number {
   const semitones: Record<NoteLetter, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -82,17 +86,17 @@ export function getNotesForMode(mode: ClefMode): NoteDefinition[] {
   return [...bassNotes, ...trebleNotes];
 }
 
-const sharpNames: Record<string, { ru: string; en: string }> = {
-  C: { ru: 'До#', en: 'C#' },
-  D: { ru: 'Ре#', en: 'D#' },
-  F: { ru: 'Фа#', en: 'F#' },
-  G: { ru: 'Соль#', en: 'G#' },
-  A: { ru: 'Ля#', en: 'A#' },
+const sharpNames: Record<string, Record<Language, string>> = {
+  C: { ru: 'До#', en: 'C#', ja: 'ド#' },
+  D: { ru: 'Ре#', en: 'D#', ja: 'レ#' },
+  F: { ru: 'Фа#', en: 'F#', ja: 'ファ#' },
+  G: { ru: 'Соль#', en: 'G#', ja: 'ソ#' },
+  A: { ru: 'Ля#', en: 'A#', ja: 'ラ#' },
 };
 
 const blackAfterNotes: NoteLetter[] = ['C', 'D', 'F', 'G', 'A'];
 
-/** Visible keyboard range for game screen: E1 to F5 (inclusive). */
+/** Visible keyboard range for game screen: full 88-key piano (A0 to C8). */
 export const allPianoKeys: KeyDefinition[] = (() => {
   const keys: KeyDefinition[] = [];
 
@@ -130,4 +134,8 @@ export function getActiveRange(mode: ClefMode): { startNoteId: string; endNoteId
 
 export function getRandomNote(notes: NoteDefinition[]): NoteDefinition {
   return notes[Math.floor(Math.random() * notes.length)];
+}
+
+export function getOctaveDisplayName(octave: number, lang: Language): string {
+  return octaveNames[octave]?.[lang] ?? `${octave} octave`;
 }

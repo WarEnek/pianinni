@@ -173,24 +173,39 @@ export function GameScreen({
 
       {/* Staff area */}
       <div class={styles.staffArea}>
-        <Staff note={game.currentNote} feedback={feedbackState} />
+        <div class={styles.staffStage}>
+          <Staff note={game.currentNote} feedback={feedbackState} />
 
-        {game.phase === 'correct' && (
-          <div class={styles.catPeek}>
-            <img src={successSvg} alt="" width="115" height="105" />
-          </div>
-        )}
-        {game.phase === 'wrong' && (
-          <div class={styles.catPeek}>
-            <img src={errorSvg} alt="" width="127" height="81" />
-          </div>
-        )}
+          {game.phase === 'correct' && (
+            <div class={styles.catPeek} aria-hidden>
+              <img
+                class={styles.catPeekImg}
+                src={successSvg}
+                alt=""
+                width="115"
+                height="105"
+              />
+            </div>
+          )}
+          {game.phase === 'wrong' && (
+            <div class={styles.catPeek} aria-hidden>
+              <img
+                class={styles.catPeekImg}
+                src={errorSvg}
+                alt=""
+                width="127"
+                height="81"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Piano keyboard */}
       <div class={styles.pianoArea}>
         <Piano
           keys={keys}
+          lang={lang}
           activeStartId={startNoteId}
           highlightKey={game.highlightKey}
           highlightType={game.highlightType}

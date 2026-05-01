@@ -1,5 +1,7 @@
 .staffContainer {
   width: 100%;
+  max-width: min(600px, calc(100vw - 32px));
+  margin: 0;
   display: flex;
   justify-content: center;
   padding: 8px 0;
@@ -7,8 +9,20 @@
 
 .staffSvg {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   height: auto;
+  display: block;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .staffContainer {
+    padding: 2px 0;
+  }
+
+  .staffSvg {
+    max-width: min(648px, calc(100vw - 24px));
+    max-height: 35vh;
+  }
 }
 
 .noteAnimate {

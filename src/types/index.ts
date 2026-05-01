@@ -1,4 +1,4 @@
-export type Language = 'ru' | 'en';
+export type Language = 'ru' | 'en' | 'ja';
 export type ClefMode = 'treble' | 'bass' | 'mixed';
 
 export interface NoteDefinition {
@@ -6,8 +6,8 @@ export interface NoteDefinition {
   midi: number;
   staffPosition: number;
   clef: 'treble' | 'bass';
-  name: { ru: string; en: string };
-  octave: { ru: string; en: string };
+  name: Record<Language, string>;
+  octave: Record<Language, string>;
   isBlack: boolean;
 }
 
@@ -15,7 +15,7 @@ export interface KeyDefinition {
   noteId: string;
   midi: number;
   isBlack: boolean;
-  label: { ru: string; en: string };
+  label: Record<Language, string>;
 }
 
 export interface LessonAttempt {

@@ -12,3 +12,14 @@
   border-radius: 3px;
   transition: width 0.3s ease;
 }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .track {
+    height: 1px;
+    border-radius: 0;
+  }
+
+  .fill {
+    border-radius: 0;
+  }
+}
