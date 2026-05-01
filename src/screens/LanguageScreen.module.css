@@ -60,3 +60,21 @@
   font-weight: 400;
   color: var(--color-text);
 }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .container {
+    justify-content: space-between;
+    padding: 20px 20px max(14px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .cards {
+    max-width: min(520px, 90vw);
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .container :global(.brand) {
+    margin-top: clamp(12px, 3vh, 18px);
+    margin-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+}

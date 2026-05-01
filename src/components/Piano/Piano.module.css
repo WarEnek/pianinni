@@ -163,11 +163,13 @@
 
 .keyCorrect {
   background: var(--color-success) !important;
+  border: none;
   border-color: var(--color-success-note);
 }
 
 .keyWrong {
   background: var(--color-error) !important;
+  border: none;
   border-color: var(--color-error-note);
 }
 

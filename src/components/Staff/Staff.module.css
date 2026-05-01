@@ -25,12 +25,3 @@
   }
 }
 
-.noteAnimate {
-  animation: notePop 0.3s ease;
-}
-
-@keyframes notePop {
-  0% { transform-origin: center; transform: scale(1); }
-  50% { transform-origin: center; transform: scale(1.2); }
-  100% { transform-origin: center; transform: scale(1); }
-}

@@ -1,7 +1,9 @@
 .btn {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: var(--toolbar-btn-size, 44px);
+  height: var(--toolbar-btn-size, 44px);
+  min-width: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,8 +35,7 @@
 /* Match GameScreen back button size; compact header in narrow landscape */
 @media (orientation: landscape) and (max-height: 560px) {
   .btn {
-    width: 34px;
-    height: 34px;
+    --toolbar-btn-size: 34px;
   }
 
   .warningDot {

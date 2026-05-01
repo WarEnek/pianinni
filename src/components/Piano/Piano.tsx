@@ -227,6 +227,97 @@ export function Piano({
     });
   }, [octaveBands, totalWidth]);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (!scrollRef.current) return;
+
+    const container = scrollRef.current;
+    const keyboard = container.firstElementChild as HTMLElement | null;
+    if (!keyboard) return;
+
+    const keyRows = Array.from(keyboard.querySelectorAll(`button`));
+    const firstKey = keyRows[0] as HTMLButtonElement | undefined;
+    const lastKey = keyRows[keyRows.length - 1] as HTMLButtonElement | undefined;
+
+    const headerTextWidth = keyRows.reduce((acc, node) => acc + (node as HTMLElement).scrollWidth, 0);
+    const compactLabelOverflow = Array.from(keyRows).some((node) => {
+      const el = node as HTMLButtonElement;
+      return el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
+    });
+
+    console.debug('[Piano] render size diagnostics', {
+      compactLandscape,
+      compact: compactLandscape,
+      container: {
+        width: Math.round(container.clientWidth),
+        height: Math.round(container.clientHeight),
+        scrollWidth: Math.round(container.scrollWidth),
+        scrollHeight: Math.round(container.scrollHeight),
+      },
+      keyboard: {
+        width: Math.round(keyboard.getBoundingClientRect().width),
+        height: Math.round(keyboard.getBoundingClientRect().height),
+      },
+      expectedTotalWidth: Math.round(totalWidth),
+      renderedKeyCount: keyRows.length,
+      compactLabelOverflow,
+      headerTextWidth,
+      firstNote: firstKey?.dataset.note ?? null,
+      lastNote: lastKey?.dataset.note ?? null,
+      widths: {
+        white: WHITE_KEY_WIDTH,
+        black: BLACK_KEY_WIDTH,
+      },
+      stripHeight: OCTAVE_STRIP_HEIGHT,
+    });
+  }, [compactLandscape, totalWidth, activeStartId]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (!highlightKey || !highlightType) {
+      console.debug('[Piano] highlight state empty', {
+        highlightKey,
+        highlightType,
+      });
+      return;
+    }
+
+    const targetKey = keys.find((key) => key.noteId === highlightKey);
+    if (!targetKey) {
+      console.warn('[Piano] highlight key missing in render set', {
+        highlightKey,
+      });
+      return;
+    }
+
+    const isBlack = targetKey.isBlack;
+    let appliedKeyClass = '';
+    if (isBlack) {
+      if (highlightType === 'correct') appliedKeyClass = styles.blackKeyCorrect;
+      if (highlightType === 'wrong') appliedKeyClass = styles.blackKeyWrong;
+    } else {
+      if (highlightType === 'correct') appliedKeyClass = styles.keyCorrect;
+      if (highlightType === 'wrong') appliedKeyClass = styles.keyWrong;
+    }
+
+    let lapkaTone = 'neutral' as LapkaTone;
+    if (targetKey.noteId === 'C4') {
+      if (highlightType === 'correct') lapkaTone = 'correct';
+      if (highlightType === 'wrong') lapkaTone = 'wrong';
+    }
+
+    console.debug('[Piano] highlight resolved', {
+      noteId: targetKey.noteId,
+      keyType: isBlack ? 'black' : 'white',
+      highlightType,
+      targetMidi: targetKey.midi,
+      appliedKeyClass,
+      lapkaTone,
+      activeStartId,
+      totalKeys: keys.length,
+    });
+  }, [highlightKey, highlightType, keys, activeStartId]);
+
   function getWhiteKeyIndex(noteId: string): number {
     return whiteKeys.findIndex((k) => k.noteId === noteId);
   }

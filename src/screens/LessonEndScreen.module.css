@@ -103,3 +103,20 @@
 .secondaryBtn:active {
   color: var(--color-text);
 }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .container {
+    padding-top: 16px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    justify-content: space-between;
+  }
+
+  .actions {
+    gap: clamp(10px, 2vh, 14px);
+    margin-top: auto;
+  }
+
+  .container :global(.brand) {
+    margin-top: clamp(12px, 3vh, 18px);
+  }
+}

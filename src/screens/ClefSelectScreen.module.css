@@ -8,8 +8,18 @@
   min-height: 0;
   gap: clamp(12px, 3vh, 32px);
   padding: clamp(44px, 7vh, 60px) 24px clamp(16px, 4vh, 32px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   background: var(--color-bg);
+}
+
+@media (orientation: portrait) {
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .languageSwitch {
@@ -58,6 +68,7 @@
   flex: 0 1 auto;
   min-height: 0;
   gap: clamp(12px, 4vh, 32px);
+  width: 100%;
 }
 
 .mascot {
@@ -85,11 +96,134 @@
 .options {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  flex: 0 1 auto;
-  gap: clamp(8px, 2vh, 12px);
   width: 100%;
-  max-width: 340px;
+  max-width: min(100%, 560px);
+  margin: 0 auto;
+  gap: clamp(8px, 2vh, 12px);
   min-height: 0;
+  justify-items: stretch;
+  justify-self: stretch;
+  align-self: stretch;
+}
+
+.optionsAndLogo {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  width: 100%;
+  max-width: min(100%, 560px);
+  margin: 0 auto;
+  min-height: 0;
+  flex: 1;
+  gap: clamp(6px, 1vh, 12px);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+.logoImage {
+  width: auto;
+  height: clamp(12px, 2.5vh, 15px);
+}
+
+@media (orientation: portrait) {
+  .container {
+    overflow-y: hidden;
+  }
+
+  .optionsAndLogo {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    width: 100%;
+    max-width: min(100%, 560px);
+    margin: 0 auto;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .brandRow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .logoImage {
+    width: auto;
+    display: block;
+    height: clamp(12px, 2.5vh, 15px);
+    margin: 0 auto;
+  }
+}
+
+@media (max-height: 620px) {
+  .container {
+    position: relative !important;
+    inset: auto !important;
+    overflow-y: auto;
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    height: 100%;
+    max-height: 100%;
+    grid-template-columns: initial !important;
+    grid-template-areas: initial !important;
+    width: auto;
+  }
+
+  .top {
+    flex: 0 0 auto;
+    margin-bottom: 4px;
+  }
+
+  .optionsAndLogo {
+    flex: 0 0 auto;
+    margin-top: 4px;
+  }
+
+  .options {
+    flex: 0 0 auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .brandRow {
+    order: 2;
+    flex: 0 0 auto;
+    margin-top: 8px;
+    margin-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    padding-top: 6px;
+    padding-bottom: 6px;
+    align-self: stretch;
+    min-height: auto;
+    flex-wrap: nowrap;
+  }
+
+  .container :global(.brand) {
+    position: static !important;
+    left: auto !important;
+    bottom: auto !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    height: auto !important;
+  }
+
+  .logoImage {
+    margin: 0;
+    display: block;
+  }
 }
 
 .card {
@@ -97,12 +231,14 @@
   flex-direction: column;
   align-items: start;
   justify-content: space-between;
-  align-self: end;
+  justify-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  height: auto;
   gap: clamp(6px, 1.6vh, 9px);
   padding: clamp(14px, 2.8vh, 20px) clamp(16px, 6vw, 25px);
   background: var(--color-bg-card);
   border-radius: var(--radius-lg);
-  height: 100%;
   transition:
     background 0.15s ease,
     transform 0.1s ease;
@@ -141,6 +277,10 @@
   grid-column: 1 / -1;
   flex-direction: column;
   align-items: flex-start;
+  justify-self: stretch;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
   gap: clamp(4px, 1.6vh, 8px);
   padding: clamp(18px, 4vh, 29px) clamp(16px, 6vw, 25px);
   background: var(--color-bg-card);
@@ -168,61 +308,10 @@
   letter-spacing: 10%;
 }
 
-.container :global(.brand) {
-  flex: 0 0 auto;
-  height: clamp(14px, 2.8vh, 18px);
-}
-
-@media (max-height: 620px) {
-  .container {
-    gap: 10px;
-    padding: 42px 20px 14px;
-  }
-
-  .languageSwitch {
-    top: 10px;
-    left: 12px;
-  }
-
-  .languageButton {
-    min-width: 42px;
-    min-height: 44px;
-    padding: 4px 6px;
-  }
-
-  .top {
-    gap: 10px;
-  }
-
-  .mascot svg {
-    width: 82px;
-  }
-
-  .title {
-    font-size: 23px;
-    line-height: 1.2;
-  }
-
-  .bassClefIcon,
-  .trebleClefIcon {
-    height: 50px;
-  }
-
-  .bassClefIcon,
-  .trebleClefIcon {
-    font-size: 34px;
-  }
-
-  .trebleClefIcon {
-    margin-bottom: 0;
-  }
-
-  .card {
-    padding: 12px 16px;
-  }
-
-  .wideCard {
-    padding: 14px 16px;
+@media (orientation: landscape) and (max-height: 560px) {
+  .container :global(.brand) {
+    margin-top: clamp(12px, 3vh, 20px);
+    margin-bottom: max(10px, env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -230,17 +319,18 @@
   .container {
     position: fixed;
     inset: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) minmax(0, 2fr);
+    grid-template-areas: "top options";
     align-items: center;
+    justify-content: center;
     align-content: center;
+    justify-items: stretch;
     gap: 10px;
-    row-gap: 8px;
     width: 100%;
     height: 100dvh;
     max-height: 100dvh;
-    padding: 10px 12px 10px 64px;
+    padding: 8px 12px max(10px, env(safe-area-inset-bottom, 0px));
   }
 
   .languageSwitch {
@@ -250,10 +340,13 @@
 
   .top {
     order: 1;
+    grid-area: top;
     flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
     gap: 6px;
-    width: auto;
-    max-width: 152px;
+    min-width: 0;
+    align-self: center;
   }
 
   .mascot {
@@ -273,10 +366,13 @@
 
   .options {
     order: 2;
-    flex: 1 1 280px;
+    grid-area: options;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 560px;
+    margin: 0;
     min-width: 0;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: none;
     gap: 8px;
   }
 
@@ -308,6 +404,7 @@
     min-width: 0;
     padding: 10px 8px;
     text-align: center;
+    justify-self: stretch;
   }
 
   .cardLabel {
@@ -322,12 +419,26 @@
 
   .container :global(.brand) {
     order: 3;
+    position: absolute;
+    left: 50%;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
     display: block;
-    flex-basis: 100%;
-    width: 100%;
-    height: clamp(12px, 2.4vh, 16px);
-    margin-top: 2px;
+    width: auto;
+    height: clamp(10px, 2.0vh, 14px);
+    margin: 0;
     align-self: center;
     object-fit: contain;
+  }
+
+  .optionsAndLogo {
+    grid-area: options;
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .brandRow {
+    width: 100%;
+    position: static;
   }
 }

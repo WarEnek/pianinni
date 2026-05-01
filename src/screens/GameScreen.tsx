@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback, useRef} from 'preact/hooks';
-import type {ClefMode, Language} from '../types';
+import type {ClefMode, GamePhase, Language} from '../types';
 import {useGame} from '../hooks/useGame';
 import {Staff} from '../components/Staff/Staff';
 import {Piano} from '../components/Piano/Piano';
@@ -20,11 +20,26 @@ import type {AudioAvailability} from '../lib/audio';
 import {t} from '../lib/i18n';
 import styles from './GameScreen.module.css';
 
+type MascotPhase = 'correct' | 'wrong';
+
 interface GameScreenProps {
   lang: Language;
   clefMode: ClefMode;
   onFinish: (score: number, total: number) => void;
   onBack: () => void;
+}
+
+const MASCOT_SOURCES: Record<MascotPhase, string> = {
+  correct: successSvg,
+  wrong: errorSvg,
+};
+
+const CAT_PEEK_DURATION_MS = 380;
+const CAT_PEEK_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+function isIOSDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 export function GameScreen({
@@ -42,6 +57,14 @@ export function GameScreen({
     getAudioAvailability(),
   );
   const pendingAnswerRef = useRef(false);
+  const lastPhaseRef = useRef<GamePhase | null>(null);
+  const phaseEnteredAtRef = useRef(0);
+  const phaseSequenceRef = useRef(0);
+  const catPeekRef = useRef<HTMLDivElement>(null);
+  const catPeekAnimationRef = useRef<Animation | null>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const feedbackRef = useRef<HTMLSpanElement>(null);
 
   // Preload acoustic piano samples as soon as the game screen mounts
   useEffect(() => {
@@ -50,7 +73,43 @@ export function GameScreen({
   }, []);
 
   useEffect(() => {
+    const mascotCache: Record<MascotPhase, HTMLImageElement> = {
+      correct: new Image(),
+      wrong: new Image(),
+    };
+
+    const decodePromises = Object.entries(MASCOT_SOURCES).map(([phase, src]) => {
+      const img = mascotCache[phase as MascotPhase];
+      img.loading = 'eager';
+      img.decoding = 'async';
+      img.src = src;
+      if (typeof img.decode === 'function') return img.decode();
+      return Promise.resolve();
+    });
+
+    void Promise.allSettled(decodePromises).then((results) => {
+      if (!import.meta.env.DEV) return;
+
+      const decoded = results.filter((result) => result.status === 'fulfilled').length;
+      const failed = results.length - decoded;
+
+      console.debug('[GameScreen] cat mascots prefetch status', {
+        decoded,
+        failed,
+        isIOS: isIOSDevice(),
+      });
+    });
+
+    return () => {
+      Object.values(mascotCache).forEach((img) => {
+        img.src = '';
+      });
+    };
+  }, []);
+
+  useEffect(() => {
     if (!import.meta.env.DEV) return;
+
     const firstKey = keys[0]?.noteId ?? null;
     const lastKey = keys[keys.length - 1]?.noteId ?? null;
     console.debug('[Piano] visible keyboard range', {
@@ -68,6 +127,179 @@ export function GameScreen({
       onFinish(game.score, game.totalAttempts);
     }
   }, [game.phase, game.score, game.totalAttempts, onFinish]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const previousPhase = lastPhaseRef.current;
+    const now = performance.now();
+    if (previousPhase !== game.phase) {
+      phaseSequenceRef.current += 1;
+      phaseEnteredAtRef.current = now;
+      console.debug('[GameScreen] phase transition', {
+        sequence: phaseSequenceRef.current,
+        from: previousPhase,
+        to: game.phase,
+        attempt: game.attempt,
+        noteId: game.currentNote.id,
+        highlightType: game.highlightType,
+        isIOS: isIOSDevice(),
+      });
+    }
+    lastPhaseRef.current = game.phase;
+  }, [game.phase, game.currentNote.id, game.attempt, game.highlightType]);
+
+  useEffect(() => {
+    if (game.phase !== 'correct' && game.phase !== 'wrong') return;
+    if (typeof window === 'undefined') return;
+    const catPeek = catPeekRef.current;
+    if (!catPeek) return;
+
+    const isCompactLandscape = window.matchMedia('(orientation: landscape) and (max-height: 560px)').matches;
+    const startOffsetPx = isCompactLandscape
+      ? Math.min(56, Math.max(24, window.innerWidth * 0.12))
+      : 28;
+    const start = {
+      opacity: 0,
+      transform: `translateY(-50%) translate3d(${startOffsetPx}px, 0, 0)`,
+    };
+    const end = {
+      opacity: 1,
+      transform: 'translateY(-50%) translate3d(0, 0, 0)',
+    };
+
+    if (catPeekAnimationRef.current) {
+      catPeekAnimationRef.current.cancel();
+      catPeekAnimationRef.current = null;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      catPeekAnimationRef.current = catPeek.animate(
+        [start, end],
+        {
+          duration: CAT_PEEK_DURATION_MS,
+          easing: CAT_PEEK_EASING,
+          fill: 'forwards',
+        },
+      );
+
+      if (import.meta.env.DEV) {
+        const delayFromPhaseChangeMs = performance.now() - phaseEnteredAtRef.current;
+        console.debug('[GameScreen] cat face animation start', {
+          phase: game.phase,
+          delayFromPhaseChangeMs: Number(delayFromPhaseChangeMs.toFixed(2)),
+          sequence: phaseSequenceRef.current,
+          attempt: game.attempt,
+          noteId: game.currentNote.id,
+          isIOS: isIOSDevice(),
+          startOffsetPx,
+        });
+      }
+
+      if (!catPeekAnimationRef.current) return;
+      void catPeekAnimationRef.current.finished.finally(() => {
+        if (!import.meta.env.DEV) return;
+        const totalFromPhaseChangeMs = performance.now() - phaseEnteredAtRef.current;
+        console.debug('[GameScreen] cat face animation end', {
+          phase: game.phase,
+          totalFromPhaseChangeMs: Number(totalFromPhaseChangeMs.toFixed(2)),
+          sequence: phaseSequenceRef.current,
+          attempt: game.attempt,
+          noteId: game.currentNote.id,
+          isIOS: isIOSDevice(),
+        });
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      if (catPeekAnimationRef.current) {
+        catPeekAnimationRef.current.cancel();
+      }
+    };
+  }, [game.phase, game.attempt, game.currentNote.id]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    const root = screenRef.current;
+    const header = headerRef.current;
+    const feedback = feedbackRef.current;
+    if (!root || !header || !feedback) return;
+
+    const buttons = Array.from(header.querySelectorAll('button'));
+    const [backButton, muteButton] = buttons;
+
+    function logLayout(tag: string) {
+      const feedbackOverflowX = feedback.scrollWidth > feedback.clientWidth;
+    const rootRect = root.getBoundingClientRect();
+    const rootStyle = window.getComputedStyle(root);
+      const headerRect = header.getBoundingClientRect();
+      const feedbackRect = feedback.getBoundingClientRect();
+      const pianoArea = root.querySelector(`.${styles.pianoArea}`) as HTMLDivElement | null;
+      const pianoRect = pianoArea?.getBoundingClientRect() ?? null;
+    const supportsSubgrid = CSS.supports('grid-template-columns: subgrid');
+
+      console.debug('[GameScreen] layout diagnostics', {
+        tag,
+      supportsSubgrid,
+        phase: game.phase,
+        attempt: game.attempt,
+        noteId: game.currentNote.id,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        root: {
+          width: Math.round(rootRect.width),
+          height: Math.round(rootRect.height),
+        computedColumns: rootStyle.gridTemplateColumns,
+        columnGap: rootStyle.columnGap,
+        },
+        header: {
+          width: Math.round(headerRect.width),
+          height: Math.round(headerRect.height),
+          backButton: backButton
+            ? {
+                width: Math.round(backButton.getBoundingClientRect().width),
+                height: Math.round(backButton.getBoundingClientRect().height),
+              }
+            : null,
+          muteButton: muteButton
+            ? {
+                width: Math.round(muteButton.getBoundingClientRect().width),
+                height: Math.round(muteButton.getBoundingClientRect().height),
+              }
+            : null,
+        },
+        feedbackText: {
+          text: feedback.textContent,
+          width: Math.round(feedbackRect.width),
+          height: Math.round(feedbackRect.height),
+          scrollWidth: Math.round(feedback.scrollWidth),
+          scrollHeight: Math.round(feedback.scrollHeight),
+          overflowX: feedbackOverflowX,
+          overflowY: feedback.scrollHeight > feedback.clientHeight,
+        },
+        pianoArea: {
+          height: pianoRect ? Math.round(pianoRect.height) : 0,
+          width: pianoRect ? Math.round(pianoRect.width) : 0,
+        },
+      });
+    }
+
+    const observer = new ResizeObserver(() => {
+      logLayout('resize');
+    });
+
+    observer.observe(root);
+    observer.observe(header);
+    observer.observe(feedback);
+    logLayout('mount');
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [game.phase, game.attempt, game.currentNote.id, clefMode, game.highlightType]);
 
   const handleKeyPress = useCallback(
     (noteId: string) => {
@@ -126,9 +358,9 @@ export function GameScreen({
   }
 
   return (
-    <div class={styles.container}>
+    <div class={styles.container} ref={screenRef}>
       {/* Header */}
-      <div class={styles.header}>
+      <div class={styles.header} ref={headerRef}>
         <button class={styles.backBtn} onClick={onBack} aria-label="Back">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
@@ -142,7 +374,7 @@ export function GameScreen({
         </button>
 
         <div class={styles.headerCenter}>
-          <span class={styles.feedbackText}>
+          <span class={styles.feedbackText} ref={feedbackRef}>
             {game.phase === 'playing' ? (
               <>
                 {t('playNote')}{' '}
@@ -177,22 +409,32 @@ export function GameScreen({
           <Staff note={game.currentNote} feedback={feedbackState} />
 
           {game.phase === 'correct' && (
-            <div class={styles.catPeek} aria-hidden>
+            <div
+              ref={catPeekRef}
+              class={styles.catPeek}
+              aria-hidden
+            >
               <img
                 class={styles.catPeekImg}
                 src={successSvg}
                 alt=""
+                decoding="async"
                 width="115"
                 height="105"
               />
             </div>
           )}
           {game.phase === 'wrong' && (
-            <div class={styles.catPeek} aria-hidden>
+            <div
+              ref={catPeekRef}
+              class={styles.catPeek}
+              aria-hidden
+            >
               <img
                 class={styles.catPeekImg}
                 src={errorSvg}
                 alt=""
+                decoding="async"
                 width="127"
                 height="81"
               />

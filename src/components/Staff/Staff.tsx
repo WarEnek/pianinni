@@ -110,13 +110,12 @@ interface WholeNoteProps {
   cx: number;
   cy: number;
   color: string;
-  animated: boolean;
 }
 
-function WholeNote({cx, cy, color, animated}: WholeNoteProps) {
+function WholeNote({cx, cy, color}: WholeNoteProps) {
   const rotate = `rotate(${NOTE_ANGLE}, ${cx}, ${cy})`;
   return (
-    <g class={animated ? styles.noteAnimate : ''}>
+    <g>
       {/* Single transparent ellipse with stroke — staff lines stay visible through it */}
       <ellipse
         cx={cx}
@@ -173,7 +172,6 @@ export function Staff({note, feedback}: StaffProps) {
           cx={noteX}
           cy={ny}
           color={noteColor}
-          animated={feedback !== 'none'}
         />
       </svg>
     </div>
