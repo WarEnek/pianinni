@@ -7,7 +7,6 @@ import {InstallBanner} from './components/InstallBanner/InstallBanner';
 import type {ClefMode, Language} from './types';
 import {setLanguage, getLanguage} from './lib/i18n';
 import {saveLessonResult} from './lib/storage';
-import {queueForSync, syncToCloud, isSupabaseConfigured} from './lib/supabase';
 
 type Screen = 'splash' | 'clef' | 'game' | 'lessonEnd';
 
@@ -57,10 +56,6 @@ export function App() {
       playedAt: new Date().toISOString(),
     };
     saveLessonResult(result);
-    if (isSupabaseConfigured()) {
-      queueForSync(result);
-      syncToCloud().catch(() => {});
-    }
   }
 
   function handleRepeat() {

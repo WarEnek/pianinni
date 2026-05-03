@@ -4,7 +4,6 @@
 
 - VPS with Docker and Portainer
 - Nginx Proxy Manager (NPM) already deployed
-- Supabase project URL and anon key
 
 ## 1. Create Shared Network (if not exists)
 
@@ -16,31 +15,19 @@ docker network create proxy
 
 Connect NPM to this network (Portainer: NPM container → Duplicate/Edit → add network `proxy`).
 
-## 2. Prepare Environment
-
-```bash
-cp .env.docker.example .env
-# Edit .env and set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
-```
-
-## 3. Deploy via Portainer
+## 2. Deploy via Portainer
 
 ### Option A: Stack (recommended)
 
 1. Portainer → Stacks → Add stack
 2. Name: `pianinni`
 3. Web editor: paste contents of `docker-compose.yml`
-4. Add environment variables (or use `.env` file):
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-5. Deploy the stack
+4. Deploy the stack
 
 ### Option B: Build & Run manually
 
 ```bash
 docker build \
-  --build-arg VITE_SUPABASE_URL=https://xxx.supabase.co \
-  --build-arg VITE_SUPABASE_ANON_KEY=your-key \
   -t pianinni:latest .
 
 docker run -d --name pianinni --network proxy --restart unless-stopped pianinni:latest
@@ -60,8 +47,6 @@ docker run -d --name pianinni --network proxy --restart unless-stopped pianinni:
 For local testing or direct port access:
 
 ```bash
-cp .env.docker.example .env
-# Edit .env
 docker compose -f docker-compose.standalone.yml up -d
 ```
 
