@@ -13,6 +13,42 @@
   background: var(--color-bg);
 }
 
+@keyframes clefCardFallFlip {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -36px, 0) rotate(-14deg) rotateY(-18deg);
+  }
+  52% {
+    opacity: 1;
+    transform: translate3d(0, 6px, 0) rotate(6deg) rotateY(12deg);
+  }
+  82% {
+    transform: translate3d(0, -2px, 0) rotate(-4deg) rotateY(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) rotateY(0deg);
+  }
+}
+
+@keyframes clefCardFallFlipReverse {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) rotateY(0deg);
+  }
+  24% {
+    opacity: 1;
+    transform: translate3d(0, 12px, 0) rotate(8deg) rotateY(16deg);
+  }
+  62% {
+    transform: translate3d(0, -12px, 0) rotate(-7deg) rotateY(-14deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) rotateY(0deg);
+  }
+}
+
 @media (orientation: portrait) {
   .container {
     display: flex;
@@ -125,6 +161,10 @@
   width: 100%;
   flex: 1 0 auto;
   min-height: 0;
+}
+
+.options {
+  --fall-flip-duration: 560ms;
 }
 
 .logoImage {
@@ -437,8 +477,55 @@
     justify-self: stretch;
   }
 
+  .options[data-fall-flip-run-id][data-fall-flip-direction='forward'] .card,
+  .options[data-fall-flip-run-id][data-fall-flip-direction='forward'] .wideCard {
+    animation-name: clefCardFallFlip;
+    animation-duration: var(--fall-flip-duration);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: both;
+    animation-delay: calc(var(--fall-flip-index, 0) * 0.08s);
+    transform-origin: center top;
+    will-change: transform, opacity;
+  }
+
+  .options[data-fall-flip-run-id][data-fall-flip-direction='forward'] .card {
+    transition: none;
+  }
+
+  .options[data-fall-flip-run-id][data-fall-flip-direction='forward'] .wideCard {
+    transition: none;
+  }
+
   .brandRow {
     width: 100%;
     position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .options[data-fall-flip-run-id][data-fall-flip-direction='backward'] .card,
+  .options[data-fall-flip-run-id][data-fall-flip-direction='backward'] .wideCard {
+    animation-name: clefCardFallFlipReverse;
+    animation-duration: var(--fall-flip-duration);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: none;
+    animation-delay: calc(var(--fall-flip-index, 0) * 0.08s);
+    transform-origin: center top;
+    will-change: transform, opacity;
+  }
+
+  .options[data-fall-flip-run-id][data-fall-flip-direction='backward'] .card,
+  .options[data-fall-flip-run-id][data-fall-flip-direction='backward'] .wideCard {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .options[data-fall-flip-run-id] .card,
+  .options[data-fall-flip-run-id] .wideCard {
+    animation: none !important;
+    transform: none;
+    opacity: 1;
+    transition: none;
   }
 }
