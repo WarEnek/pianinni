@@ -14,9 +14,6 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
   }, [onDone]);
 
   function handleClick() {
-    if (import.meta.env.DEV) {
-      console.debug('[Audio] menu bgm suppressed on splash click');
-    }
     onDone();
   }
 

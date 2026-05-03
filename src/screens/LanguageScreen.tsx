@@ -41,9 +41,6 @@ export function LanguageScreen({onSelect}: LanguageScreenProps) {
   }, []);
 
   function handleSelect(lang: Language) {
-    if (import.meta.env.DEV) {
-      console.debug('[Audio] menu bgm suppressed on language select', {lang});
-    }
     onSelect(lang);
   }
 

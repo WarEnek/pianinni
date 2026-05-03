@@ -24,14 +24,6 @@ export function App() {
     }
   }, []);
 
-  // useEffect(() => {
-  //   if (screen === 'splash' || screen === 'language') {
-  //     startBgm();
-  //   } else {
-  //     stopBgm();
-  //   }
-  // }, [screen]);
-
   function handleSplashDone() {
     setScreen('clef');
   }

@@ -9,9 +9,6 @@ interface WindowWithWebkitAudioContext extends Window {
 
 let audioCtx: AudioContext | null = null;
 let muted = localStorage.getItem('pianinni_muted') === 'true';
-
-let bgm: HTMLAudioElement | null = null;
-let bgmFadeTimer: ReturnType<typeof setInterval> | null = null;
 const NOTE_SUSTAIN_SECONDS = 2;
 
 // SplendidGrandPiano instance — loaded once, reused for all notes
@@ -22,60 +19,6 @@ function getAudioContextConstructor(): typeof AudioContext | null {
   const audioWindow = window as WindowWithWebkitAudioContext;
   return audioWindow.AudioContext ?? audioWindow.webkitAudioContext ?? null;
 }
-
-export function startBgm(): void {
-  if (muted) return;
-  if (bgm) {
-    if (bgm.paused) fadeBgmIn();
-    return;
-  }
-  bgm = new Audio('/audio/bgm.mp3');
-  bgm.loop = true;
-  bgm.volume = 0;
-  bgm
-    .play()
-    .then(() => fadeBgmIn())
-    .catch(() => {});
-}
-
-export function stopBgm(): void {
-  if (!bgm || bgm.paused) return;
-  fadeBgmOut(() => {
-    bgm?.pause();
-  });
-}
-
-function fadeBgmIn(): void {
-  if (!bgm) return;
-  clearBgmFade();
-  const target = 0.35;
-  bgmFadeTimer = setInterval(() => {
-    if (!bgm) return;
-    bgm.volume = Math.min(bgm.volume + 0.02, target);
-    if (bgm.volume >= target) clearBgmFade();
-  }, 30);
-}
-
-function fadeBgmOut(onDone?: () => void): void {
-  if (!bgm) return;
-  clearBgmFade();
-  bgmFadeTimer = setInterval(() => {
-    if (!bgm) return;
-    bgm.volume = Math.max(bgm.volume - 0.02, 0);
-    if (bgm.volume <= 0) {
-      clearBgmFade();
-      onDone?.();
-    }
-  }, 30);
-}
-
-function clearBgmFade(): void {
-  if (bgmFadeTimer !== null) {
-    clearInterval(bgmFadeTimer);
-    bgmFadeTimer = null;
-  }
-}
-
 function getContext(): AudioContext | null {
   const AudioContextConstructor = getAudioContextConstructor();
   if (!AudioContextConstructor) return null;
@@ -147,18 +90,6 @@ export function isMuted(): boolean {
 export function setMuted(val: boolean): void {
   muted = val;
   localStorage.setItem('pianinni_muted', String(val));
-  if (bgm) {
-    if (muted) {
-      fadeBgmOut(() => {
-        bgm?.pause();
-      });
-    } else if (bgm.paused) {
-      bgm
-        .play()
-        .then(() => fadeBgmIn())
-        .catch(() => {});
-    }
-  }
 }
 
 export function toggleMute(): boolean {
