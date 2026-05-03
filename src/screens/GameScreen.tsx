@@ -225,17 +225,20 @@ export function GameScreen({
     const header = headerRef.current;
     const feedback = feedbackRef.current;
     if (!root || !header || !feedback) return;
+    const rootElement = root;
+    const headerElement = header;
+    const feedbackElement = feedback;
 
-    const buttons = Array.from(header.querySelectorAll('button'));
+    const buttons = Array.from(headerElement.querySelectorAll('button'));
     const [backButton, muteButton] = buttons;
 
     function logLayout(tag: string) {
-      const feedbackOverflowX = feedback.scrollWidth > feedback.clientWidth;
-    const rootRect = root.getBoundingClientRect();
-    const rootStyle = window.getComputedStyle(root);
-      const headerRect = header.getBoundingClientRect();
-      const feedbackRect = feedback.getBoundingClientRect();
-      const pianoArea = root.querySelector(`.${styles.pianoArea}`) as HTMLDivElement | null;
+      const feedbackOverflowX = feedbackElement.scrollWidth > feedbackElement.clientWidth;
+    const rootRect = rootElement.getBoundingClientRect();
+    const rootStyle = window.getComputedStyle(rootElement);
+      const headerRect = headerElement.getBoundingClientRect();
+      const feedbackRect = feedbackElement.getBoundingClientRect();
+      const pianoArea = rootElement.querySelector(`.${styles.pianoArea}`) as HTMLDivElement | null;
       const pianoRect = pianoArea?.getBoundingClientRect() ?? null;
     const supportsSubgrid = CSS.supports('grid-template-columns: subgrid');
 
@@ -272,13 +275,13 @@ export function GameScreen({
             : null,
         },
         feedbackText: {
-          text: feedback.textContent,
+          text: feedbackElement.textContent ?? '',
           width: Math.round(feedbackRect.width),
           height: Math.round(feedbackRect.height),
-          scrollWidth: Math.round(feedback.scrollWidth),
-          scrollHeight: Math.round(feedback.scrollHeight),
+          scrollWidth: Math.round(feedbackElement.scrollWidth),
+          scrollHeight: Math.round(feedbackElement.scrollHeight),
           overflowX: feedbackOverflowX,
-          overflowY: feedback.scrollHeight > feedback.clientHeight,
+          overflowY: feedbackElement.scrollHeight > feedbackElement.clientHeight,
         },
         pianoArea: {
           height: pianoRect ? Math.round(pianoRect.height) : 0,
@@ -291,9 +294,9 @@ export function GameScreen({
       logLayout('resize');
     });
 
-    observer.observe(root);
-    observer.observe(header);
-    observer.observe(feedback);
+    observer.observe(rootElement);
+    observer.observe(headerElement);
+    observer.observe(feedbackElement);
     logLayout('mount');
 
     return () => {

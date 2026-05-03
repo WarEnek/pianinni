@@ -19,8 +19,8 @@ export function CatMascot({ size = 120 }: CatMascotProps) {
 
   useEffect(() => {
     let active = true;
-    let nextBlinkTimeout: ReturnType<typeof setTimeout> | null = null;
-    let blinkEndTimeout: ReturnType<typeof setTimeout> | null = null;
+    let nextBlinkTimeout: number | null = null;
+    let blinkEndTimeout: number | null = null;
 
     const scheduleNextBlink = () => {
       const rangeMs = BLINK_INTERVAL_MAX_MS - BLINK_INTERVAL_MIN_MS;
