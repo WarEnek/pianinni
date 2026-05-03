@@ -12,8 +12,8 @@ export default defineConfig({
   plugins: [
     preact(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png'],
+      registerType: 'prompt',
+      includeAssets: ['icons/*.png', 'offline.html'],
       manifest: {
         id: '/?source=pwa',
         name: 'Pianinni - Note Learning',
@@ -33,7 +33,15 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        cleanupOutdatedCaches: true,
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest,woff2}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [
+          /^\/offline\.html$/,
+          /^\/sw\.js$/,
+          /^\/workbox-.*\.js$/,
+          /^\/registerSW\.js$/,
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#4A3F6B" />
+    <title>Pianinni — offline</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #ffffff;
+        color: #3d2d47;
+      }
+
+      .app {
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+
+      .card {
+        max-width: 420px;
+        width: 100%;
+        border: 1px solid #4a3f6b;
+        border-radius: 14px;
+        padding: 18px;
+        background: #f9f7fc;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+
+      p {
+        margin: 0 0 14px;
+        line-height: 1.4;
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        background: #4a3f6b;
+        color: #fff;
+        padding: 10px 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="card">
+        <h1>Нет интернета</h1>
+        <p>Приложение было закрыто без сети. Мы сохранили последний рабочий срез, поэтому доступные уроки останутся. Подключитесь к интернету и нажмите "Попробовать снова".</p>
+        <button id="retry">Попробовать снова</button>
+      </div>
+    </div>
+    <script>
+      document.getElementById('retry').addEventListener('click', () => {
+        if (navigator.onLine) {
+          location.href = '/';
+          return;
+        }
+        location.reload();
+      });
+    </script>
+  </body>
+</html>

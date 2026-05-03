@@ -4,6 +4,7 @@ import {ClefSelectScreen} from './screens/ClefSelectScreen';
 import {GameScreen} from './screens/GameScreen';
 import {LessonEndScreen} from './screens/LessonEndScreen';
 import {InstallBanner} from './components/InstallBanner/InstallBanner';
+import {PwaUpdatePrompt} from './components/PwaUpdatePrompt/PwaUpdatePrompt';
 import type {ClefMode, Language} from './types';
 import {setLanguage, getLanguage} from './lib/i18n';
 import {saveLessonResult} from './lib/storage';
@@ -108,6 +109,7 @@ export function App() {
         }
       })()}
       <InstallBanner />
+      <PwaUpdatePrompt />
     </>
   );
 }
