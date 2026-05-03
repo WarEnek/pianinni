@@ -19,17 +19,43 @@ function getAudioContextConstructor(): typeof AudioContext | null {
   const audioWindow = window as WindowWithWebkitAudioContext;
   return audioWindow.AudioContext ?? audioWindow.webkitAudioContext ?? null;
 }
-function getContext(): AudioContext | null {
+
+/** Create the shared AudioContext if missing. Does not call resume (iOS needs resume inside a user gesture). */
+function ensureAudioContextInstance(): AudioContext | null {
   const AudioContextConstructor = getAudioContextConstructor();
   if (!AudioContextConstructor) return null;
-
   if (!audioCtx) {
     audioCtx = new AudioContextConstructor();
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
-  }
   return audioCtx;
+}
+
+function getContext(): AudioContext | null {
+  const ctx = ensureAudioContextInstance();
+  if (!ctx) return null;
+  if (ctx.state === 'suspended') {
+    void ctx.resume().catch(() => {});
+  }
+  return ctx;
+}
+
+/**
+ * Call synchronously from pointerdown / click handlers. iOS Safari often rejects
+ * AudioContext.resume() once the user-activation stack is broken by async gaps.
+ */
+export function unlockAudioContextInUserGestureSync(): void {
+  const ctx = ensureAudioContextInstance();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') {
+    void ctx.resume().catch((err) => {
+      if (import.meta.env.DEV) {
+        console.debug('[Audio] sync resume failed', {err});
+      }
+    });
+  }
+  if (import.meta.env.DEV) {
+    console.debug('[Audio] unlock sync', {state: ctx.state});
+  }
 }
 
 export function getAudioAvailability(): AudioAvailability {
@@ -40,7 +66,7 @@ export function getAudioAvailability(): AudioAvailability {
 }
 
 export async function ensureAudioAvailable(): Promise<AudioAvailability> {
-  const ctx = getContext();
+  const ctx = ensureAudioContextInstance();
   if (!ctx) {
     if (import.meta.env.DEV) {
       console.debug('[Audio] availability check failed', {status: 'unavailable'});
@@ -49,6 +75,7 @@ export async function ensureAudioAvailable(): Promise<AudioAvailability> {
   }
 
   if (ctx.state === 'suspended') {
+    unlockAudioContextInUserGestureSync();
     try {
       await ctx.resume();
     } catch (error) {
@@ -69,12 +96,14 @@ export async function ensureAudioAvailable(): Promise<AudioAvailability> {
 }
 
 export async function resumeAudioContextFromUserGesture(): Promise<AudioAvailability> {
-  const ctx = getContext();
+  const ctx = ensureAudioContextInstance();
   if (!ctx) return 'unavailable';
 
   if (ctx.state === 'running') {
     return 'available';
   }
+
+  unlockAudioContextInUserGestureSync();
 
   try {
     await ctx.resume();

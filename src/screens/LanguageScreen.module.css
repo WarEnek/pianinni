@@ -64,7 +64,7 @@
 @media (orientation: landscape) and (max-height: 560px) {
   .container {
     justify-content: space-between;
-    padding: 20px 20px max(14px, env(safe-area-inset-bottom, 0px));
+    padding: 20px 20px 14px;
   }
 
   .cards {
@@ -75,6 +75,6 @@
 
   .container :global(.brand) {
     margin-top: clamp(12px, 3vh, 18px);
-    margin-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    margin-bottom: 12px;
   }
 }

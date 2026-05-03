@@ -8,7 +8,6 @@
   justify-content: flex-start;
   gap: clamp(16px, 4vh, 28px);
   padding: clamp(20px, 5vh, 80px) 24px clamp(16px, 4vh, 32px);
-  padding-bottom: max(clamp(16px, 4vh, 32px), env(safe-area-inset-bottom, 0px));
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -107,7 +106,7 @@
 @media (orientation: landscape) and (max-height: 560px) {
   .container {
     padding-top: 16px;
-    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: 14px;
     justify-content: space-between;
   }
 

@@ -2,6 +2,7 @@ import { useRef, useEffect, useMemo } from 'preact/hooks';
 import type { KeyDefinition, Language } from '../../types';
 import { getOctaveDisplayName } from '../../lib/notes';
 import { useCompactLandscape } from '../../lib/breakpoints';
+import { unlockAudioContextInUserGestureSync } from '../../lib/audio';
 import styles from './Piano.module.css';
 
 /** Target key center lands between these horizontal ratios of the viewport (0 = left edge). */
@@ -337,6 +338,7 @@ export function Piano({
 
   function handleKeyPointerDown(event: PointerEvent, noteId: string) {
     if (disabled) return;
+    unlockAudioContextInUserGestureSync();
     pendingPressRef.current = {
       pointerId: event.pointerId,
       noteId,

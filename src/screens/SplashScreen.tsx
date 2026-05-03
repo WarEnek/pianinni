@@ -1,5 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { CatMascot } from '../components/CatMascot/CatMascot';
+import { unlockAudioContextInUserGestureSync } from '../lib/audio';
 import logoSvg from './Pianinni.svg';
 import styles from './SplashScreen.module.css';
 
@@ -14,6 +15,7 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
   }, [onDone]);
 
   function handleClick() {
+    unlockAudioContextInUserGestureSync();
     onDone();
   }
 

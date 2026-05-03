@@ -11,6 +11,7 @@ import {allPianoKeys, getActiveRange} from '../lib/notes';
 import {
   playNote,
   resumeAudioContextFromUserGesture,
+  unlockAudioContextInUserGestureSync,
   warmUpPiano,
 } from '../lib/audio';
 import {
@@ -314,6 +315,7 @@ export function GameScreen({
       const key = keys.find((k) => k.noteId === noteId);
       const pressedAtMs = performance.now();
 
+      unlockAudioContextInUserGestureSync();
       const availability = await resumeAudioContextFromUserGesture();
       setAudioAvailability(availability);
       if (availability === 'unavailable') return;
@@ -340,12 +342,14 @@ export function GameScreen({
   );
 
   const handleKeyPointerDownAudioPrime = useCallback(() => {
+    unlockAudioContextInUserGestureSync();
     void resumeAudioContextFromUserGesture().then((availability) => {
       setAudioAvailability(availability);
     });
   }, []);
 
   const handleMuteToggle = useCallback(async () => {
+    unlockAudioContextInUserGestureSync();
     const previousAvailability = getAudioAvailability();
     const availability = await ensureAudioAvailable();
     setAudioAvailability(availability);
