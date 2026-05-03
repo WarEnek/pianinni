@@ -8,7 +8,11 @@ import {MuteToggle} from '../components/MuteToggle/MuteToggle';
 import successSvg from '../components/CatMascot/success.svg';
 import errorSvg from '../components/CatMascot/error.svg';
 import {allPianoKeys, getActiveRange} from '../lib/notes';
-import {playNote, warmUpPiano} from '../lib/audio';
+import {
+  playNote,
+  resumeAudioContextFromUserGesture,
+  warmUpPiano,
+} from '../lib/audio';
 import {
   ensureAudioAvailable,
   getAudioAvailability,
@@ -305,13 +309,17 @@ export function GameScreen({
   }, [game.phase, game.attempt, game.currentNote.id, clefMode, game.highlightType]);
 
   const handleKeyPress = useCallback(
-    (noteId: string) => {
+    async (noteId: string) => {
       if (game.phase !== 'playing' || pendingAnswerRef.current) return;
       const key = keys.find((k) => k.noteId === noteId);
       const pressedAtMs = performance.now();
+
+      const availability = await resumeAudioContextFromUserGesture();
+      setAudioAvailability(availability);
+      if (availability === 'unavailable') return;
+
       if (key) {
         playNote(key.midi);
-        setAudioAvailability(getAudioAvailability());
       }
       if (import.meta.env.DEV) {
         console.debug('[Game] piano key press', {
@@ -331,7 +339,14 @@ export function GameScreen({
     [game, keys, ANSWER_FEEDBACK_DELAY_MS],
   );
 
+  const handleKeyPointerDownAudioPrime = useCallback(() => {
+    void resumeAudioContextFromUserGesture().then((availability) => {
+      setAudioAvailability(availability);
+    });
+  }, []);
+
   const handleMuteToggle = useCallback(async () => {
+    const previousAvailability = getAudioAvailability();
     const availability = await ensureAudioAvailable();
     setAudioAvailability(availability);
     if (availability === 'unavailable') return;
@@ -339,6 +354,11 @@ export function GameScreen({
     if (availability === 'blocked') {
       setMutedPreference(true);
       setMutedState(true);
+      return;
+    }
+
+    if (previousAvailability === 'blocked') {
+      setMutedState(isMuted());
       return;
     }
 
@@ -455,6 +475,7 @@ export function GameScreen({
           highlightKey={game.highlightKey}
           highlightType={game.highlightType}
           onKeyPress={handleKeyPress}
+          onKeyPointerDownAudioPrime={handleKeyPointerDownAudioPrime}
           scrollToNote={game.currentNote.id}
           scrollBiasSeed={game.attempt}
           disabled={game.phase !== 'playing'}

@@ -89,6 +89,7 @@ interface PianoProps {
   disabled?: boolean;
   /** When true, renders scientific note id (e.g. A5) on each key for local debugging. */
   showKeyDebugIds?: boolean;
+  onKeyPointerDownAudioPrime?: () => void;
 }
 
 export function Piano({
@@ -102,6 +103,7 @@ export function Piano({
   scrollBiasSeed = 0,
   disabled = false,
   showKeyDebugIds = false,
+  onKeyPointerDownAudioPrime,
 }: PianoProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
@@ -342,6 +344,9 @@ export function Piano({
       startY: event.clientY,
       moved: false,
     };
+    if (onKeyPointerDownAudioPrime) {
+      onKeyPointerDownAudioPrime();
+    }
   }
 
   function handleKeyPointerMove(event: PointerEvent) {

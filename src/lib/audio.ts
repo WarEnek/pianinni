@@ -125,6 +125,21 @@ export async function ensureAudioAvailable(): Promise<AudioAvailability> {
   return status;
 }
 
+export async function resumeAudioContextFromUserGesture(): Promise<AudioAvailability> {
+  const ctx = getContext();
+  if (!ctx) return 'unavailable';
+
+  if (ctx.state === 'running') {
+    return 'available';
+  }
+
+  try {
+    await ctx.resume();
+  } catch {}
+
+  return getAudioAvailability();
+}
+
 export function isMuted(): boolean {
   return muted;
 }
